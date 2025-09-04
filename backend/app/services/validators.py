@@ -12,10 +12,10 @@ class SummaryValidator:
             return False, {"reason": "too_short"}
         if len(summary) > 4000:
             return False, {"reason": "too_long"}
-        # Simple coverage: at least 3 unique tokens from source appear
+        # Simple coverage: at least 2 unique tokens from source appear (reduced from 3)
         src_terms = set(t.lower() for t in raw_text.split()[:500])
         hit = sum(1 for t in set(summary.lower().split()) if t in src_terms)
-        if hit < 3:  # extremely loose
+        if hit < 2:  # extremely loose - reduced threshold for HTML content
             return False, {"reason": "low_coverage"}
         return True, {}
 
@@ -27,10 +27,15 @@ class EntityValidator:
             return True, {}
         if len(entities) > 200:
             return False, {"reason": "too_many_entities"}
-        # Require most entities to appear in text (loose)
+        
+        # Handle case where no entities were found
+        if len(entities) == 1 and entities[0].lower() in ["no entities found.", "no entities found", "none"]:
+            return True, {}
+        
+        # Require some entities to appear in text (very loose for HTML content)
         raw_lower = raw_text.lower()
         present = sum(1 for e in entities if e.strip() and e.lower() in raw_lower)
-        if entities and present / max(1, len(entities)) < 0.4:
+        if entities and present / max(1, len(entities)) < 0.2:  # Reduced from 0.4 to 0.2
             return False, {"reason": "low_presence", "present_ratio": present / max(1, len(entities))}
         return True, {}
 

@@ -113,7 +113,8 @@ class AgentRegistry:
             self.bias_reviewer, self.completeness_reviewer, self.security_reviewer,
             self.perf_analyzer, self.disagreement_arbiter
         ]:
-            await ag.model_client.close()
+            if hasattr(ag, '_model_client'):
+                await ag._model_client.close()
         self._initialized = False
 
 agent_registry = AgentRegistry()

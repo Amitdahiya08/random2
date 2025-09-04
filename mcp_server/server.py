@@ -68,7 +68,11 @@ async def extract_text(path: str) -> str:
             soup = BeautifulSoup(f.read(), "html.parser")
             # Remove script/style
             for s in soup(["script", "style"]): s.decompose()
-            return soup.get_text("\n")
+            # Get text and clean up whitespace
+            text = soup.get_text("\n")
+            # Clean up excessive whitespace
+            lines = [line.strip() for line in text.split("\n") if line.strip()]
+            return "\n".join(lines)
     # fallback: txt
     with open(path, "r", encoding="utf-8", errors="ignore") as f:
         return f.read()
