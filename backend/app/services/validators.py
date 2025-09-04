@@ -1,10 +1,35 @@
+"""
+Validation modules for document processing quality control.
+
+This module provides validation logic for summaries, entities, and Q&A responses
+to ensure high-quality outputs from the document processing pipeline.
+"""
 from __future__ import annotations
 from typing import Dict, List, Tuple
 
+
 class SummaryValidator:
-    """Very lightweight, heuristic validator for summaries."""
+    """
+    Validator for document summaries.
+    
+    Provides heuristic validation to ensure summaries meet quality standards
+    including length bounds and content coverage requirements.
+    """
+    
     @staticmethod
     def validate(raw_text: str, summary: str) -> Tuple[bool, Dict]:
+        """
+        Validate a document summary against the source text.
+        
+        Args:
+            raw_text: The original document text
+            summary: The generated summary to validate
+            
+        Returns:
+            Tuple of (is_valid, details) where:
+            - is_valid: Boolean indicating if summary passes validation
+            - details: Dictionary with validation failure details if applicable
+        """
         if not summary or not summary.strip():
             return False, {"reason": "empty_summary"}
         # Heuristics: length bounds & minimal coverage check

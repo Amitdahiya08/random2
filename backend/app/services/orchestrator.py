@@ -1,3 +1,10 @@
+"""
+Orchestrator module for document processing workflows.
+
+This module coordinates the complete document ingestion and Q&A pipeline,
+including parsing, summarization, entity extraction, and knowledge base indexing.
+It also manages critic workflows for quality assurance and performance monitoring.
+"""
 import json
 import time
 from typing import List, Tuple, Dict, Optional
@@ -56,13 +63,34 @@ arb_wf = DisagreementArbiterWorkflow()
 @traceable("ingest_document")
 async def ingest_document(file_path: str, doc_id: str) -> Tuple[List[str], str, List[str]]:
     """
-    Parse -> Summarize -> Extract Entities -> Index KB
-    Includes:
-      - Validation of generated outputs
-      - Non-blocking critic/reviewer agents (bias, completeness, security, perf)
-      - Disagreement tracking between critics
-      - Graceful exceptions
-    Returns: (sections, summary, entities)
+    Process a document through the complete ingestion pipeline.
+    
+    This function orchestrates the full document processing workflow:
+    1. Parse document using MCP tools to extract text and sections
+    2. Generate summary with validation and fallback handling
+    3. Extract entities with validation and fallback handling
+    4. Run non-blocking critic workflows for quality assurance
+    5. Index content in knowledge base for search
+    6. Persist document data to local storage
+    
+    Args:
+        file_path: Path to the document file to process
+        doc_id: Unique identifier for the document
+        
+    Returns:
+        Tuple containing:
+        - sections: List of document sections/chunks
+        - summary: Generated document summary
+        - entities: List of extracted entities
+        
+    Raises:
+        ParsingError: If document parsing fails
+        SummarizationError: If summarization fails (with fallback)
+        EntityExtractionError: If entity extraction fails (with fallback)
+        
+    Note:
+        This function includes graceful fallbacks for validation failures
+        to ensure robust document processing even with challenging content.
     """
     # 1) Parse via parser agent (expects JSON with {sections, raw_text})
     parse_task = (
