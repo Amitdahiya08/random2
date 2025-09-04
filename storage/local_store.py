@@ -19,7 +19,7 @@ def make_doc_id(filename: str) -> str:
     base = f"{filename}-{time.time()}"
     return hashlib.sha1(base.encode()).hexdigest()[:16]
 
-def put_document(doc_id: str, raw_text: str, sections: Optional[list]=None, summary: Optional[str]=None, entities: Optional[list]=None) -> None:
+def put_document(doc_id: str, raw_text: str, sections=None, summary=None, entities=None) -> None:
     idx = _load_index()
     idx[doc_id] = {
         "doc_id": doc_id,
@@ -27,6 +27,8 @@ def put_document(doc_id: str, raw_text: str, sections: Optional[list]=None, summ
         "sections": sections or [],
         "summary": summary or "",
         "entities": entities or [],
+        "reviews": [],         # list of {type, payload, timestamp}
+        "disagreements": []    # list of {phase, details, timestamp}
     }
     _save_index(idx)
 
@@ -43,3 +45,22 @@ def update_summary(doc_id: str, summary: str, entities: Optional[list]=None):
 
 def all_docs() -> Dict[str, Any]:
     return _load_index()
+
+# ... existing imports ...
+
+
+def append_review(doc_id: str, review_type: str, payload: dict):
+    idx = _load_index()
+    if doc_id in idx:
+        idx[doc_id].setdefault("reviews", []).append({
+            "type": review_type, "payload": payload, "ts": int(time.time()*1000)
+        })
+        _save_index(idx)
+
+def append_disagreement(doc_id: str, phase: str, details: dict):
+    idx = _load_index()
+    if doc_id in idx:
+        idx[doc_id].setdefault("disagreements", []).append({
+            "phase": phase, "details": details, "ts": int(time.time()*1000)
+        })
+        _save_index(idx)

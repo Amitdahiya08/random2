@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from storage.local_store import get_document
 from backend.app.models.schemas import SummaryUpdate
 from backend.app.services.orchestrator import apply_user_edit
+from storage.local_store import get_document
 
 router = APIRouter()
 
@@ -19,3 +20,10 @@ async def update_summary(doc_id: str, payload: SummaryUpdate):
         raise HTTPException(404, "Document not found")
     apply_user_edit(doc_id, payload.summary, payload.entities)
     return {"ok": True}
+    
+@router.get("/reviews/{doc_id}")
+async def get_reviews(doc_id: str):
+    doc = get_document(doc_id)
+    if not doc:
+        raise HTTPException(404, "Document not found")
+    return {"reviews": doc.get("reviews", []), "disagreements": doc.get("disagreements", [])}
